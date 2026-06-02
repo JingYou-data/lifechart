@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命盘 · MingPan AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px 16px;
+        }
+
+        .lang-toggle {
+            text-align: right;
+            margin-bottom: 16px;
+        }
+
+        .lang-btn {
+            background: rgba(255,215,0,0.15);
+            border: 1px solid rgba(255,215,0,0.4);
+            color: #ffd700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            color: #ffd700;
+            margin-bottom: 6px;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0a0c0;
+            margin-bottom: 24px;
+            font-size: 0.9em;
+        }
+
+        .input-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,215,0,0.2);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #ffd700;
+            font-size: 0.85em;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1em;
+            margin-bottom: 16px;
+        }
+
+        input:focus { outline: none; border-color: #ffd700; }
+
+        #btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: none;
+            border-radius: 10px;
+            color: #1a1a2e;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+
+        #btn:disabled { opacity: 0.5; }
+
+        .loading {
+            text-align: center;
+            color: #ffd700;
+            display: none;
+            padding: 20px;
+            font-size: 1em;
+        }
+
+        /* 卡片区域 */
+        .cards {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,215,0,0.2);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .card-icon {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            color: #ffd700;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,215,0,0.2);
+        }
+
+        .card-content {
+            font-size: 0.95em;
+            line-height: 1.8;
+            color: #d0d0e0;
+        }
+
+        /* 四柱特殊布局 */
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .pillar-item {
+            background: rgba(255,215,0,0.08);
+            border: 1px solid rgba(255,215,0,0.15);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .pillar-label {
+            color: #ffd700;
+            font-size: 0.75em;
+            margin-bottom: 6px;
+        }
+
+        .pillar-value {
+            color: #fff;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-toggle">
+        <button class="lang-btn" onclick="toggleLang()">🇺🇸 English</button>
+    </div>
+
+    <h1>☯ 命盘</h1>
+    <p class="subtitle" data-zh="AI · 八字命理分析" data-en="AI · BaZi Destiny Analysis">AI · 八字命理分析</p>
+
+    <div class="input-card">
+        <label data-zh="出生日期" data-en="Date of Birth">出生日期</label>
+        <input type="date" id="birth_date">
+
+        <label data-zh="出生时间（可选）" data-en="Time of Birth (optional)">出生时间（可选）</label>
+        <input type="time" id="birth_time">
+
+        <button id="btn" onclick="getReading()"
+            data-zh="✨ 开始分析" data-en="✨ Begin Reading">✨ 开始分析</button>
+    </div>
+
+    <div class="loading" id="loading"
+        data-zh="🔮 大师正在推算中..."
+        data-en="🔮 Consulting the stars...">🔮 大师正在推算中...</div>
+
+    <div class="cards" id="cards">
+        <!-- 四柱 -->
+        <div class="card">
+            <div class="card-icon">🏛️</div>
+            <div class="card-title" id="pillars-title">四柱八字</div>
+            <div class="pillars-grid">
+                <div class="pillar-item">
+                    <div class="pillar-label" data-zh="年柱" data-en="Year Pillar">年柱</div>
+                    <div class="pillar-value" id="pillar-year"></div>
+                </div>
+                <div class="pillar-item">
+                    <div class="pillar-label" data-zh="月柱" data-en="Month Pillar">月柱</div>
+                    <div class="pillar-value" id="pillar-month"></div>
+                </div>
+                <div class="pillar-item">
+                    <div class="pillar-label" data-zh="日柱" data-en="Day Pillar">日柱</div>
+                    <div class="pillar-value" id="pillar-day"></div>
+                </div>
+                <div class="pillar-item">
+                    <div class="pillar-label" data-zh="时柱" data-en="Hour Pillar">时柱</div>
+                    <div class="pillar-value" id="pillar-hour"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 五行 -->
+        <div class="card">
+            <div class="card-icon">🌊</div>
+            <div class="card-title" id="elements-title">五行分析</div>
+            <div class="card-content" id="elements-content"></div>
+        </div>
+
+        <!-- 性格 -->
+        <div class="card">
+            <div class="card-icon">✨</div>
+            <div class="card-title" id="personality-title">性格特点</div>
+            <div class="card-content" id="personality-content"></div>
+        </div>
+
+        <!-- 运势 -->
+        <div class="card">
+            <div class="card-icon">🔮</div>
+            <div class="card-title" id="fortune-title">2026年运势</div>
+            <div class="card-content" id="fortune-content"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'zh';
+
+        function toggleLang() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            const btn = document.querySelector('.lang-btn');
+            btn.innerText = currentLang === 'zh' ? '🇺🇸 English' : '🇨🇳 中文';
+            document.querySelectorAll('[data-zh]').forEach(el => {
+                el.innerText = el.getAttribute('data-' + currentLang);
+            });
+            document.getElementById("cards").style.display = "none";
+        }
+
+        function renderCards(data) {
+            document.getElementById("pillars-title").innerText = data.pillars.title;
+            document.getElementById("pillar-year").innerText = data.pillars.year;
+            document.getElementById("pillar-month").innerText = data.pillars.month;
+            document.getElementById("pillar-day").innerText = data.pillars.day;
+            document.getElementById("pillar-hour").innerText = data.pillars.hour;
+
+            document.getElementById("elements-title").innerText = data.elements.title;
+            document.getElementById("elements-content").innerText = data.elements.content;
+
+            document.getElementById("personality-title").innerText = data.personality.title;
+            document.getElementById("personality-content").innerText = data.personality.content;
+
+            document.getElementById("fortune-title").innerText = data.fortune.title;
+            document.getElementById("fortune-content").innerText = data.fortune.content;
+
+            document.getElementById("cards").style.display = "flex";
+        }
+
+        async function getReading() {
+            const birth_date = document.getElementById("birth_date").value;
+            const birth_time = document.getElementById("birth_time").value;
+
+            if (!birth_date) {
+                alert(currentLang === 'zh' ? '请输入出生日期！' : 'Please enter your date of birth!');
+                return;
+            }
+
+            document.getElementById("btn").disabled = true;
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("cards").style.display = "none";
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/reading", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ birth_date, birth_time: birth_time || null, lang: currentLang })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert("解析出错，请重试！");
+                } else {
+                    renderCards(data);
+                }
+            } catch (error) {
+                alert(currentLang === 'zh' ? '出错了，请检查服务器！' : 'Error! Please check the server.');
+            } finally {
+                document.getElementById("btn").disabled = false;
+                document.getElementById("loading").style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

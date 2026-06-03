@@ -31,23 +31,19 @@ Clone the repo and install dependencies:
 pip install anthropic fastapi uvicorn
 ```
 
-Set your Anthropic API key:
+Create a `.env` file in the project root:
 
-```bash
-# Mac/Linux
-export ANTHROPIC_API_KEY="your-key-here"
-
-# Windows PowerShell
-$env:ANTHROPIC_API_KEY="your-key-here"
+```
+ANTHROPIC_API_KEY=your-key-here
 ```
 
-Run the app:
+Run the app — **use PowerShell on Windows** (not Git Bash, to avoid SSL issues):
 
-```bash
-uvicorn main:app --reload
+```powershell
+python -m uvicorn main:app --port 8000
 ```
 
-Open `http://127.0.0.1:8000`
+Open `http://localhost:8000`
 
 ---
 

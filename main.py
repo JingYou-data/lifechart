@@ -1,10 +1,18 @@
 import anthropic
+import certifi
+import httpx
 import json
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from dotenv import load_dotenv
 
-client = anthropic.Anthropic()
+load_dotenv()
+
+client = anthropic.Anthropic(
+    http_client=httpx.Client(verify=certifi.where())
+)
 
 def get_bazi_reading(birth_date: str, birth_time: str = None, lang: str = "zh") -> str:
 
@@ -79,6 +87,13 @@ Return ONLY this JSON, no explanation:
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class BirthInfo(BaseModel):
     birth_date: str
